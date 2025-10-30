@@ -72,7 +72,11 @@ export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [config, setConfig] = useState<DeepgramConfig>(DEFAULT_DEEPGRAM_CONFIG);
-  const [replaceText, setReplaceText] = useState(''); // Internal state for textarea
+  const [replaceText, setReplaceText] = useState(
+    Object.entries(DEFAULT_DEEPGRAM_CONFIG.replace)
+      .map(([k, v]) => `${k}:${v}`)
+      .join('\n')
+  );
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [recording, setRecording] = useState(false);
@@ -304,6 +308,9 @@ export default function Page() {
 
           {showAdvanced && (
             <div className="mt-4 space-y-6 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <p className="text-xs text-gray-600 italic">
+                Pre-populated with recommended settings for alphanumeric testing. Modify as needed before starting your session.
+              </p>
               {/* Model Selection */}
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-gray-800">Model Selection</h3>
