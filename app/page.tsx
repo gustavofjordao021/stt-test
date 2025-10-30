@@ -284,52 +284,212 @@ export default function Page() {
           </button>
 
           {showAdvanced && (
-            <div className="mt-4 grid gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
-              <label className="flex flex-col text-sm text-gray-600">
-                Model
-                <select
-                  className="mt-1 rounded border border-gray-200 bg-white px-2 py-1 text-sm"
-                  value={config.model}
-                  onChange={(e) => setConfig({ ...config, model: e.target.value as DeepgramConfig['model'] })}
-                >
-                  <option value="base">Base (default)</option>
-                  <option value="nova-2">Nova 2 (latest)</option>
-                  <option value="nova-2-general">Nova 2 General</option>
-                  <option value="enhanced">Enhanced</option>
-                </select>
-              </label>
+            <div className="mt-4 space-y-6 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              {/* Model Selection */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-800">Model Selection</h3>
+                <p className="text-xs text-gray-500">Choose the Deepgram AI model for transcription.</p>
+                <label className="flex flex-col text-sm text-gray-600">
+                  <select
+                    className="mt-1 rounded border border-gray-200 bg-white px-2 py-1.5 text-sm"
+                    value={config.model}
+                    onChange={(e) => setConfig({ ...config, model: e.target.value as DeepgramConfig['model'] })}
+                  >
+                    <option value="base">Base (default, balanced)</option>
+                    <option value="nova-2">Nova 2 (latest, best accuracy)</option>
+                    <option value="nova-2-general">Nova 2 General (optimized for mixed content)</option>
+                    <option value="enhanced">Enhanced (older, sometimes better for technical terms)</option>
+                  </select>
+                </label>
+              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex items-center gap-2 text-sm text-gray-600">
+              {/* Formatting Options */}
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Formatting</h3>
+                <p className="text-xs text-gray-500">Control how Deepgram interprets and formats your audio.</p>
+
+                <label className="flex items-start gap-2 text-sm text-gray-600">
                   <input
                     type="checkbox"
                     checked={config.smart_format}
                     onChange={(e) => setConfig({ ...config, smart_format: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300"
                   />
-                  Smart Format (auto-formatting)
+                  <div className="flex-1">
+                    <div className="font-medium">Smart Format</div>
+                    <div className="text-xs text-gray-500">
+                      Applies automatic punctuation, capitalization, and number formatting. Turn OFF for literal alphanumeric transcription.
+                    </div>
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-2 text-sm text-gray-600">
+                <label className="flex items-start gap-2 text-sm text-gray-600">
                   <input
                     type="checkbox"
                     checked={config.filler_words}
                     onChange={(e) => setConfig({ ...config, filler_words: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300"
                   />
-                  Include Filler Words
+                  <div className="flex-1">
+                    <div className="font-medium">Include Filler Words</div>
+                    <div className="text-xs text-gray-500">
+                      Keep interpretive words like "um", "uh", "my", "is a". Turn OFF to get cleaner, more literal output.
+                    </div>
+                  </div>
                 </label>
               </div>
 
-              <label className="flex flex-col text-sm text-gray-600">
-                Keywords <span className="text-xs text-gray-400">(comma-separated, boosts accuracy)</span>
+              {/* Language & Detection */}
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Language</h3>
+                <p className="text-xs text-gray-500">Force a specific language or let Deepgram auto-detect.</p>
+
+                <label className="flex items-start gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={config.detect_language}
+                    onChange={(e) => setConfig({ ...config, detect_language: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">Auto-Detect Language</div>
+                    <div className="text-xs text-gray-500">
+                      Let Deepgram automatically detect the language instead of using the locale you selected above. Useful for mixed-language testing.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Keywords */}
+              <div className="space-y-2 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Keywords Boost</h3>
+                <p className="text-xs text-gray-500">
+                  Comma-separated phrases that Deepgram should prioritize. Improves accuracy for specific alphanumeric patterns, account numbers, or technical terms.
+                </p>
                 <input
-                  className="mt-1 rounded border border-gray-200 bg-white px-2 py-1 text-sm"
+                  className="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-sm placeholder:text-gray-400"
                   value={config.keywords || ''}
                   onChange={(e) => setConfig({ ...config, keywords: e.target.value || null })}
-                  placeholder="e.g., X7Q4-9Z,payment code,amount"
+                  placeholder="e.g., X7Q4-9Z, payment code, account number"
                 />
-              </label>
+              </div>
+
+              {/* Privacy & Redaction */}
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Privacy & Redaction</h3>
+                <p className="text-xs text-gray-500">
+                  Automatically redact sensitive information from transcripts. Useful for compliance testing and to see if redaction affects alphanumeric accuracy.
+                </p>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={config.redact.includes('pci')}
+                      onChange={(e) => {
+                        const newRedact = e.target.checked
+                          ? [...config.redact, 'pci']
+                          : config.redact.filter(r => r !== 'pci');
+                        setConfig({ ...config, redact: newRedact });
+                      }}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Redact PCI (credit card numbers)
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={config.redact.includes('ssn')}
+                      onChange={(e) => {
+                        const newRedact = e.target.checked
+                          ? [...config.redact, 'ssn']
+                          : config.redact.filter(r => r !== 'ssn');
+                        setConfig({ ...config, redact: newRedact });
+                      }}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Redact SSN (social security numbers)
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={config.redact.includes('numbers')}
+                      onChange={(e) => {
+                        const newRedact = e.target.checked
+                          ? [...config.redact, 'numbers']
+                          : config.redact.filter(r => r !== 'numbers');
+                        setConfig({ ...config, redact: newRedact });
+                      }}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Redact Numbers (all numeric sequences)
+                  </label>
+                </div>
+              </div>
+
+              {/* Segmentation */}
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Segmentation</h3>
+                <p className="text-xs text-gray-500">
+                  Control how Deepgram splits the transcript into segments.
+                </p>
+
+                <label className="flex items-start gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={config.utterances}
+                    onChange={(e) => setConfig({ ...config, utterances: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">Enable Utterances</div>
+                    <div className="text-xs text-gray-500">
+                      Split transcript into separate utterances with timestamps based on pauses. Better for analyzing natural speech patterns.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Find & Replace */}
+              <div className="space-y-3 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-800">Find & Replace</h3>
+                <p className="text-xs text-gray-500">
+                  Automatically replace specific words or phrases in the transcript. This is the solution for converting spoken words like "dash" into symbols like "-". Each rule should be on a new line in the format: <code className="bg-gray-100 px-1 rounded">find:replace</code>
+                </p>
+                <div className="space-y-2">
+                  <textarea
+                    className="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-sm placeholder:text-gray-400 font-mono"
+                    rows={4}
+                    value={Object.entries(config.replace).map(([k, v]) => `${k}:${v}`).join('\n')}
+                    onChange={(e) => {
+                      const lines = e.target.value.split('\n');
+                      const newReplace: Record<string, string> = {};
+                      lines.forEach(line => {
+                        const [find, ...replaceParts] = line.split(':');
+                        if (find && replaceParts.length > 0) {
+                          newReplace[find.trim()] = replaceParts.join(':').trim();
+                        }
+                      });
+                      setConfig({ ...config, replace: newReplace });
+                    }}
+                    placeholder="dash:-&#10;at:@&#10;dollar:$&#10;space: "
+                  />
+                  <div className="rounded bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                    <strong>💡 Pro Tip:</strong> Keywords boost acoustic recognition, but Replace actually transforms the text. Use Replace for "dash" → "-", "at" → "@", etc.
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Common examples:
+                    <ul className="ml-4 mt-1 list-disc space-y-0.5">
+                      <li><code className="bg-gray-100 px-1 rounded">dash:-</code> converts "dash" to hyphen</li>
+                      <li><code className="bg-gray-100 px-1 rounded">at:@</code> converts "at" to @ symbol</li>
+                      <li><code className="bg-gray-100 px-1 rounded">dollar:$</code> converts "dollar" to $ symbol</li>
+                      <li><code className="bg-gray-100 px-1 rounded">Dash:-</code> (capitalized) for mid-sentence usage</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

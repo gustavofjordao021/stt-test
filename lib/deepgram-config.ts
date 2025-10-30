@@ -5,6 +5,10 @@ export interface DeepgramConfig {
   keywords: string | null;
   punctuate: boolean;
   numerals: boolean;
+  detect_language: boolean;
+  redact: string[];
+  utterances: boolean;
+  replace: Record<string, string>; // Find and replace terms in transcript
 }
 
 export const DEFAULT_DEEPGRAM_CONFIG: DeepgramConfig = {
@@ -14,6 +18,10 @@ export const DEFAULT_DEEPGRAM_CONFIG: DeepgramConfig = {
   keywords: null,
   punctuate: true,
   numerals: true,
+  detect_language: false,
+  redact: [],
+  utterances: false,
+  replace: {},
 };
 
 export function buildDeepgramUrl(
@@ -30,7 +38,13 @@ export function buildDeepgramUrl(
   params.set('filler_words', String(config.filler_words));
   params.set('profanity_filter', 'false');
   params.set('diarize', 'false');
-  params.set('language', language);
+
+  // Language detection
+  if (config.detect_language) {
+    params.set('detect_language', 'true');
+  } else {
+    params.set('language', language);
+  }
 
   // Model selection
   if (config.model && config.model !== 'base') {
@@ -41,6 +55,27 @@ export function buildDeepgramUrl(
   if (config.keywords && config.keywords.trim()) {
     params.set('keywords', config.keywords.trim());
     params.set('keywords:intensifier', '3');
+  }
+
+  // Redaction (if provided)
+  if (config.redact && config.redact.length > 0) {
+    config.redact.forEach((item) => {
+      params.append('redact', item);
+    });
+  }
+
+  // Utterances
+  if (config.utterances) {
+    params.set('utterances', 'true');
+  }
+
+  // Replace (find and replace in transcript)
+  if (config.replace && Object.keys(config.replace).length > 0) {
+    Object.entries(config.replace).forEach(([find, replace]) => {
+      if (find && replace !== undefined) {
+        params.append('replace', `${find}:${replace}`);
+      }
+    });
   }
 
   return `${baseUrl}?${params.toString()}`;
