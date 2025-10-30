@@ -54,6 +54,7 @@ export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [config, setConfig] = useState<DeepgramConfig>(DEFAULT_DEEPGRAM_CONFIG);
+  const [replaceText, setReplaceText] = useState(''); // Internal state for textarea
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [recording, setRecording] = useState(false);
@@ -462,14 +463,24 @@ export default function Page() {
                   <textarea
                     className="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-sm placeholder:text-gray-400 font-mono"
                     rows={4}
-                    value={Object.entries(config.replace).map(([k, v]) => `${k}:${v}`).join('\n')}
+                    value={replaceText}
                     onChange={(e) => {
-                      const lines = e.target.value.split('\n');
+                      const text = e.target.value;
+                      setReplaceText(text);
+
+                      // Parse the text into replace object
+                      const lines = text.split('\n');
                       const newReplace: Record<string, string> = {};
                       lines.forEach(line => {
-                        const [find, ...replaceParts] = line.split(':');
-                        if (find && replaceParts.length > 0) {
-                          newReplace[find.trim()] = replaceParts.join(':').trim();
+                        if (line.trim()) {
+                          const colonIndex = line.indexOf(':');
+                          if (colonIndex > 0) {
+                            const find = line.substring(0, colonIndex).trim();
+                            const replace = line.substring(colonIndex + 1).trim();
+                            if (find) {
+                              newReplace[find] = replace;
+                            }
+                          }
                         }
                       });
                       setConfig({ ...config, replace: newReplace });
