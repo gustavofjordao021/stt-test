@@ -27,6 +27,18 @@ const EN_PROMPTS: Prompt[] = [
   { id: 'en-3', text: 'Payment code X7Q4-9Z. Amount $128.50.' },
   { id: 'en-4', text: 'Email: test+dev@example.com.' },
   { id: 'en-5', text: 'Plate number ABC-1234.' },
+  // Phonetically challenging prompts (C/D/E/P/M/N confusion)
+  { id: 'en-6', text: 'Reference code C-D-E-3-P-M-N.' },
+  { id: 'en-7', text: 'Serial: M8N2-P5D1-C7E4.' },
+  { id: 'en-8', text: 'Confirmation B3P-D9M-E2C-N7.' },
+  { id: 'en-9', text: 'Model CD-MN-PE dash 2024.' },
+  { id: 'en-10', text: 'License NPC-DME-3517.' },
+  // Additional challenging patterns
+  { id: 'en-11', text: 'VIN: 1C4RJFBG8EC123456.' },
+  { id: 'en-12', text: 'Part number: F8B-C2D-M5N-P1E.' },
+  { id: 'en-13', text: 'Tracking: 9B2E-4D7C-6M1P.' },
+  { id: 'en-14', text: 'Password: Delta3Echo5Mike7.' },
+  { id: 'en-15', text: 'Code: C as in Cat, D as in Dog, M as in Mike.' },
 ];
 
 const ES_PROMPTS: Prompt[] = [
@@ -35,6 +47,12 @@ const ES_PROMPTS: Prompt[] = [
   { id: 'es-3', text: 'Importe 128,50 euros.' },
   { id: 'es-4', text: 'Correo: prueba+qa@ejemplo.com.' },
   { id: 'es-5', text: 'Matrícula ABC-1234.' },
+  // Desafíos fonéticos (C/D/E/P/M/N)
+  { id: 'es-6', text: 'Código de referencia C-D-E-3-P-M-N.' },
+  { id: 'es-7', text: 'Serie: M8N2-P5D1-C7E4.' },
+  { id: 'es-8', text: 'Confirmación B3P-D9M-E2C-N7.' },
+  { id: 'es-9', text: 'Modelo CD guion MN guion PE guion 2024.' },
+  { id: 'es-10', text: 'Matrícula NPC-DME-3517.' },
 ];
 
 const EXAMPLE_SET = (process.env.NEXT_PUBLIC_EXAMPLE_SET || 'default').toLowerCase();
