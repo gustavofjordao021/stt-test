@@ -66,6 +66,8 @@ function selectPrompts(locale: Locale): Prompt[] {
   return EX_PROMPTS_BY_SET[EXAMPLE_SET] || EN_PROMPTS;
 }
 
+const CUSTOM_PROMPT: Prompt = { id: 'custom', text: '' };
+
 export default function Page() {
   const [name, setName] = useState('');
   const [locale, setLocale] = useState<Locale>('en');
@@ -79,6 +81,7 @@ export default function Page() {
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [customPromptText, setCustomPromptText] = useState('');
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
@@ -212,6 +215,12 @@ export default function Page() {
 
           setAttempts((prev) => [attempt, ...prev]);
           setInfo('Transcription received.');
+
+          // Reset custom prompt after successful recording
+          if (selectedPrompt.id === 'custom') {
+            setCustomPromptText('');
+            setSelectedPrompt(null);
+          }
         } catch (err) {
           console.error(err);
           setError(err instanceof Error ? err.message : 'Transcription failed');
@@ -545,6 +554,44 @@ export default function Page() {
       <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">2. Pick a prompt</h2>
         <div className="grid gap-3">
+          {/* Custom prompt option */}
+          <button
+            onClick={() => {
+              setSelectedPrompt(CUSTOM_PROMPT);
+              setCustomPromptText('');
+            }}
+            className={`rounded-lg border px-3 py-2 text-left text-sm transition ${selectedPrompt?.id === 'custom'
+              ? 'border-blue-500 bg-blue-50 text-blue-800'
+              : 'border-gray-200 hover:border-gray-300'
+              }`}
+          >
+            ✏️ Custom - Type your own...
+          </button>
+
+          {/* Custom text input (shown when custom is selected) */}
+          {selectedPrompt?.id === 'custom' && (
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom prompt (type exactly what you'll say):
+              </label>
+              <input
+                type="text"
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="e.g., License plate: XYZ-789-ABC"
+                value={customPromptText}
+                onChange={(e) => {
+                  setCustomPromptText(e.target.value);
+                  setSelectedPrompt({ id: 'custom', text: e.target.value });
+                }}
+                autoFocus
+              />
+              <p className="mt-2 text-xs text-gray-600">
+                💡 Tip: Include dashes, symbols, and challenging letters for better testing
+              </p>
+            </div>
+          )}
+
+          {/* Pre-defined prompts */}
           {prompts.map((prompt) => (
             <button
               key={prompt.id}
@@ -565,7 +612,12 @@ export default function Page() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleStartRecording}
-            disabled={recording || !selectedPrompt || processing}
+            disabled={
+              recording ||
+              !selectedPrompt ||
+              (selectedPrompt?.id === 'custom' && !customPromptText.trim()) ||
+              processing
+            }
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-500 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             {recording ? 'Recording…' : 'Record'}
