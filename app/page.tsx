@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { DEFAULT_DEEPGRAM_CONFIG, DEFAULT_ASSEMBLYAI_CONFIG, type STTConfig, type DeepgramConfig } from '@/lib/deepgram-config';
 import { supabase } from '@/lib/supabase/client';
@@ -96,6 +97,21 @@ export default function Page() {
   const startTimeRef = useRef<number>(0);
 
   const prompts = selectPrompts(locale);
+
+  // Update config when provider changes
+  useEffect(() => {
+    if (provider === 'deepgram') {
+      setConfig(DEFAULT_DEEPGRAM_CONFIG);
+      setReplaceText(
+        Object.entries(DEFAULT_DEEPGRAM_CONFIG.replace || {})
+          .map(([k, v]) => `${k}:${v}`)
+          .join('\n')
+      );
+    } else {
+      setConfig(DEFAULT_ASSEMBLYAI_CONFIG);
+      setReplaceText('');
+    }
+  }, [provider]);
 
   // Helper function to get signed URL from Supabase Storage
   const getSignedAudioUrl = async (storagePath: string): Promise<string | null> => {
@@ -303,6 +319,15 @@ export default function Page() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 px-6 py-10">
+      <div className="flex justify-end">
+        <Link
+          href="/analytics"
+          className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+        >
+          View Analytics →
+        </Link>
+      </div>
+
       <section className="space-y-2">
         <h1 className="text-2xl font-semibold text-gray-900">Deepgram STT Probe</h1>
         <p className="text-sm text-gray-600">
@@ -434,7 +459,7 @@ export default function Page() {
                     <label className="flex items-start gap-2 text-sm text-gray-600">
                       <input
                         type="checkbox"
-                        checked={config.smart_format}
+                        checked={config.smart_format ?? false}
                         onChange={(e) => setConfig({ ...config, smart_format: e.target.checked })}
                         className="mt-0.5 h-4 w-4 rounded border-gray-300"
                       />
@@ -449,7 +474,7 @@ export default function Page() {
                     <label className="flex items-start gap-2 text-sm text-gray-600">
                       <input
                         type="checkbox"
-                        checked={config.filler_words}
+                        checked={config.filler_words ?? false}
                         onChange={(e) => setConfig({ ...config, filler_words: e.target.checked })}
                         className="mt-0.5 h-4 w-4 rounded border-gray-300"
                       />
@@ -470,7 +495,7 @@ export default function Page() {
                     <label className="flex items-start gap-2 text-sm text-gray-600">
                       <input
                         type="checkbox"
-                        checked={config.detect_language}
+                        checked={config.detect_language ?? false}
                         onChange={(e) => setConfig({ ...config, detect_language: e.target.checked })}
                         className="mt-0.5 h-4 w-4 rounded border-gray-300"
                       />
@@ -565,7 +590,7 @@ export default function Page() {
                     <label className="flex items-start gap-2 text-sm text-gray-600">
                       <input
                         type="checkbox"
-                        checked={config.utterances}
+                        checked={config.utterances ?? false}
                         onChange={(e) => setConfig({ ...config, utterances: e.target.checked })}
                         className="mt-0.5 h-4 w-4 rounded border-gray-300"
                       />
