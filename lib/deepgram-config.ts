@@ -1,23 +1,44 @@
-export interface DeepgramConfig {
-  model: 'base' | 'nova-2' | 'nova-2-general' | 'enhanced';
-  smart_format: boolean;
-  filler_words: boolean;
-  keywords: string | null;
+// Unified STT Config supporting multiple providers
+export interface STTConfig {
+  // Required
+  provider: 'deepgram' | 'assemblyai';
+
+  // Common (both providers)
+  model: string; // provider-specific values
   punctuate: boolean;
-  numerals: boolean;
-  detect_language: boolean;
-  redact: string[];
-  utterances: boolean;
-  replace: Record<string, string>; // Find and replace terms in transcript
+  numerals: boolean; // Deepgram: numerals, AssemblyAI: format_text
+  profanity_filter: boolean;
+  language: string;
+
+  // Deepgram-specific (ignored if provider=assemblyai)
+  smart_format?: boolean;
+  filler_words?: boolean;
+  replace?: Record<string, string>;
+  keywords?: string | null;
+  detect_language?: boolean;
+  redact?: string[];
+  utterances?: boolean;
+
+  // AssemblyAI-specific (ignored if provider=deepgram)
+  speaker_labels?: boolean;
+  entity_detection?: boolean;
+  word_boost?: string[];
+  boost_param?: 'low' | 'default' | 'high';
 }
 
-export const DEFAULT_DEEPGRAM_CONFIG: DeepgramConfig = {
+// Legacy type alias for backward compatibility
+export type DeepgramConfig = STTConfig;
+
+export const DEFAULT_DEEPGRAM_CONFIG: STTConfig = {
+  provider: 'deepgram',
   model: 'nova-2',
-  smart_format: false,
-  filler_words: false,
-  keywords: 'payment code, account number, confirmation, reference, dash, guion',
   punctuate: true,
   numerals: true,
+  profanity_filter: false,
+  language: 'en',
+  smart_format: false,
+  filler_words: false,
+  keywords: 'payment code, account number, confirmation, reference, dash, guion, raya',
   detect_language: false,
   redact: [],
   utterances: false,
@@ -45,6 +66,19 @@ export const DEFAULT_DEEPGRAM_CONFIG: DeepgramConfig = {
     'punto': '.',
     'coma': ',',
   },
+};
+
+export const DEFAULT_ASSEMBLYAI_CONFIG: STTConfig = {
+  provider: 'assemblyai',
+  model: 'best',
+  punctuate: true,
+  numerals: true,
+  profanity_filter: false,
+  language: 'en',
+  speaker_labels: false,
+  entity_detection: false,
+  word_boost: ['payment', 'code', 'account', 'dash', 'guion', 'raya'],
+  boost_param: 'high',
 };
 
 export function buildDeepgramUrl(

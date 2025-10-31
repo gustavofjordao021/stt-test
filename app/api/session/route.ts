@@ -51,16 +51,21 @@ export async function POST(req: NextRequest) {
         tester_name: name,
         locale,
         notes,
+        provider: config.provider || 'deepgram',
         config,
       })
-      .select('id, config')
+      .select('id, provider, config')
       .single();
 
     if (sessionError) {
       return NextResponse.json({ error: sessionError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ sessionId: session.id, config: session.config });
+    return NextResponse.json({
+      sessionId: session.id,
+      provider: session.provider,
+      config: session.config
+    });
   } catch (error) {
     console.error('[session] unexpected error', error);
     return NextResponse.json({ error: 'unexpected error' }, { status: 500 });
