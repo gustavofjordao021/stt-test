@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/spinner';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { DEFAULT_DEEPGRAM_CONFIG, DEFAULT_ASSEMBLYAI_CONFIG, type STTConfig, type DeepgramConfig } from '@/lib/deepgram-config';
 import { supabase } from '@/lib/supabase/client';
@@ -78,6 +80,7 @@ export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [config, setConfig] = useState<STTConfig>(DEFAULT_DEEPGRAM_CONFIG);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [replaceText, setReplaceText] = useState(
     Object.entries(DEFAULT_DEEPGRAM_CONFIG.replace || {})
       .map(([k, v]) => `${k}:${v}`)
@@ -176,6 +179,7 @@ export default function Page() {
     try {
       setError(null);
       setInfo(null);
+      setIsCreatingSession(true);
 
       const response = await fetch('/api/session', {
         method: 'POST',
@@ -196,32 +200,43 @@ export default function Page() {
 
       setSessionId(json.sessionId);
       setAttempts([]);
-      setInfo('Session created. Pick a prompt and start recording.');
+      toast.success('Session created! Pick a prompt and start recording.');
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Failed to start session');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start session';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsCreatingSession(false);
     }
   };
 
   const handleStartRecording = async () => {
     if (!sessionId) {
-      setError('Start a session first.');
+      const errorMsg = 'Start a session first.';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      setError('Your browser does not support audio recording.');
+      const errorMsg = 'Your browser does not support audio recording.';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (!selectedPrompt) {
-      setError('Select an example prompt before recording.');
+      const errorMsg = 'Select an example prompt before recording.';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     try {
       setError(null);
       setInfo('Listening… speak the prompt clearly.');
+      toast.info('Listening… speak the prompt clearly.');
       chunksRef.current = [];
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -282,6 +297,7 @@ export default function Page() {
 
           setAttempts((prev) => [attempt, ...prev]);
           setInfo('Transcription received.');
+          toast.success('Transcription received successfully!');
 
           // Reset custom prompt after successful recording
           if (selectedPrompt.id === 'custom') {
@@ -290,7 +306,9 @@ export default function Page() {
           }
         } catch (err) {
           console.error(err);
-          setError(err instanceof Error ? err.message : 'Transcription failed');
+          const errorMessage = err instanceof Error ? err.message : 'Transcription failed';
+          setError(errorMessage);
+          toast.error(errorMessage);
         } finally {
           setProcessing(false);
           chunksRef.current = [];
@@ -303,7 +321,9 @@ export default function Page() {
       setRecording(true);
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Microphone access failed');
+      const errorMessage = err instanceof Error ? err.message : 'Microphone access failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       resetRecorder();
       setRecording(false);
     }
@@ -312,7 +332,9 @@ export default function Page() {
   const handleStopRecording = () => {
     if (!mediaRecorderRef.current) return;
     setRecording(false);
-    setInfo('Uploading audio to Deepgram…');
+    const uploadMsg = 'Uploading audio and transcribing…';
+    setInfo(uploadMsg);
+    toast.loading(uploadMsg);
     mediaRecorderRef.current.stop();
     mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
   };
@@ -753,9 +775,10 @@ export default function Page() {
 
         <button
           onClick={handleStartSession}
-          disabled={!name.trim() || processing}
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          disabled={!name.trim() || processing || isCreatingSession}
+          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2"
         >
+          {isCreatingSession && <Spinner />}
           {sessionId ? 'Restart Session' : 'Start Session'}
         </button>
         {sessionId && (
@@ -830,18 +853,20 @@ export default function Page() {
               (selectedPrompt?.id === 'custom' && !customPromptText.trim()) ||
               processing
             }
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-500 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-500 disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2"
           >
+            {recording && <Spinner />}
             {recording ? 'Recording…' : 'Record'}
           </button>
           <button
             onClick={handleStopRecording}
             disabled={!recording}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2"
           >
+            {processing && <Spinner />}
             Stop & Send
           </button>
-          {processing && <span className="text-sm text-gray-500">Uploading and transcribing…</span>}
+          {processing && <span className="text-sm text-gray-500 flex items-center gap-2"><Spinner className="size-4" />Uploading and transcribing…</span>}
         </div>
 
         {selectedPrompt && (

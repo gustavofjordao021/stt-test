@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
     BarChart,
     Bar,
@@ -73,7 +74,9 @@ export default function AnalyticsPage() {
 
                 setLoading(false);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load data');
+                const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
+                setError(errorMessage);
+                toast.error(`Failed to load analytics: ${errorMessage}`);
                 setLoading(false);
             }
         }

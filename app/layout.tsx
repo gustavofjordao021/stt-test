@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: 'Next Prototype Starter',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <body className="antialiased bg-gray-50 text-gray-900">
+        <Toaster />
         {children}
       </body>
     </html>
